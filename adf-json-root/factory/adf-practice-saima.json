@@ -1,0 +1,9 @@
+{
+	"name": "adf-practice-saima",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "ede3847a-a67c-4b47-8262-6a40581a13a9",
+		"tenantId": "3ff832cf-96af-4e27-87de-10fdd8a438c7"
+	}
+}
