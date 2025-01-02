@@ -1,0 +1,103 @@
+{
+	"name": "SQL DB to ADLS",
+	"properties": {
+		"activities": [
+			{
+				"name": "Azue SQL DB to ADLs",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings",
+							"maxConcurrentConnections": 0,
+							"copyBehavior": "MergeFiles",
+							"metadata": [
+								{
+									"name": "ADF_Name",
+									"value": {
+										"value": "@pipeline().DataFactory",
+										"type": "Expression"
+									}
+								},
+								{
+									"name": "Pipeline_Name",
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									}
+								},
+								{
+									"name": "Trigger_Time",
+									"value": {
+										"value": "@pipeline().TriggerTime",
+										"type": "Expression"
+									}
+								},
+								{
+									"name": "Trigger_Name",
+									"value": {
+										"value": "@pipeline().TriggerName",
+										"type": "Expression"
+									}
+								},
+								{
+									"name": "Trigger_Type",
+									"value": {
+										"value": "@pipeline().TriggerType",
+										"type": "Expression"
+									}
+								},
+								{
+									"name": "File_Format",
+									"value": ".csv"
+								}
+							]
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".csv"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "AzureSqlTableSales",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ADLS_Sales_CSV",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"annotations": []
+	}
+}
