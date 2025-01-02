@@ -1,5 +1,10 @@
 {
 	"name": "adf-practice-saima",
+	"properties": {
+		"globalConfigurations": {
+			"PipelineBillingEnabled": "false"
+		}
+	},
 	"location": "eastus",
 	"identity": {
 		"type": "SystemAssigned",
