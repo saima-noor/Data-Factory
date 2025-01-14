@@ -1,0 +1,19 @@
+{
+	"name": "MetadataDrivenCopyTask_jcv_ControlDS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDBMetadata",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "MetadataDrivenCopyTask_jcv_20250114"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "DBtoAdls_metadataTable"
+		}
+	}
+}
