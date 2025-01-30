@@ -10,7 +10,7 @@
 				"type": "String"
 			},
 			"cw_folderPath": {
-				"type": "Object"
+				"type": "string"
 			},
 			"cw_fileSystem": {
 				"type": "String"
