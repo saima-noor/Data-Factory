@@ -10,8 +10,8 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"fileName": "sales.csv",
-				"fileSystem": "container-saima"
+				"fileName": "Sales.csv",
+				"fileSystem": "source"
 			},
 			"columnDelimiter": ",",
 			"escapeChar": "\\",
