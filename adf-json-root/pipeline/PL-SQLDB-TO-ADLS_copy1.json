@@ -1,5 +1,5 @@
 {
-	"name": "PL-SQLDB-TO-ADLS",
+	"name": "PL-SQLDB-TO-ADLS_copy1",
 	"properties": {
 		"activities": [
 			{
@@ -489,11 +489,11 @@
 			},
 			"MainControlTableName": {
 				"type": "string",
-				"defaultValue": "dbo.MainControlTable_config"
+				"defaultValue": "dbo.MainControlTable_metadata"
 			},
 			"TopLevelPipelineName": {
 				"type": "string",
-				"defaultValue": "PL-SQLDB-TO-ADLS"
+				"defaultValue": "MetadataDrivenCopyTask_yvs_TopLevel"
 			},
 			"TriggerName": {
 				"type": "string",
