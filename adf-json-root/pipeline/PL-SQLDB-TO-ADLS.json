@@ -59,7 +59,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"on": {
-									"value": "@json(item().DataLoadingBehaviorSettings).dataLoadingBehavior",
+									"value": "@item().dataLoadingBehavior",
 									"type": "Expression"
 								},
 								"cases": [
@@ -81,37 +81,21 @@
 												"userProperties": [
 													{
 														"name": "Source",
-														"value": "@{json(item().SourceObjectSettings).schema}.@{json(item().SourceObjectSettings).table}"
+														"value": "@{item().SourceObjectSchema}.@{item().SourceObjectTable}"
 													},
 													{
 														"name": "Destination",
-														"value": "@{json(item().SinkObjectSettings).fileSystem}/@{json(item().SinkObjectSettings).folderPath}/@{json(item().SinkObjectSettings).fileName}"
+														"value": "@{item().SinkObjectFileSystem}/@{item().SinkObjectFolderPath}/@{item().SinkObjectFileName}"
 													}
 												],
 												"typeProperties": {
 													"source": {
 														"type": "AzureSqlSource",
 														"sqlReaderQuery": {
-															"value": "@json(item().CopySourceSettings).sqlReaderQuery",
-															"type": "Expression"
-														},
-														"partitionOption": {
-															"value": "@json(item().CopySourceSettings).partitionOption",
+															"value": "@item().sqlReaderQuery",
 															"type": "Expression"
 														},
 														"partitionSettings": {
-															"partitionColumnName": {
-																"value": "@json(item().CopySourceSettings).partitionColumnName",
-																"type": "Expression"
-															},
-															"partitionUpperBound": {
-																"value": "@json(item().CopySourceSettings).partitionUpperBound",
-																"type": "Expression"
-															},
-															"partitionLowerBound": {
-																"value": "@json(item().CopySourceSettings).partitionLowerBound",
-																"type": "Expression"
-															},
 															"partitionNames": "@json(item().CopySourceSettings).partitionNames"
 														}
 													},
@@ -139,11 +123,11 @@
 														"type": "DatasetReference",
 														"parameters": {
 															"cw_schema": {
-																"value": "@json(item().SourceObjectSettings).schema",
+																"value": "@item().SourceObjectSchema",
 																"type": "Expression"
 															},
 															"cw_table": {
-																"value": "@json(item().SourceObjectSettings).table",
+																"value": "@item().SourceObjectTable",
 																"type": "Expression"
 															}
 														}
@@ -155,15 +139,15 @@
 														"type": "DatasetReference",
 														"parameters": {
 															"cw_fileName": {
-																"value": "@json(item().SinkObjectSettings).fileName",
+																"value": "@item().SinkObjectFileName",
 																"type": "Expression"
 															},
 															"cw_folderPath": {
-																"value": "@json(item().SinkObjectSettings).folderPath",
+																"value": "@item().SinkObjectFolderPath",
 																"type": "Expression"
 															},
 															"cw_fileSystem": {
-																"value": "@json(item().SinkObjectSettings).fileSystem",
+																"value": "@item().SinkObjectFileSystem",
 																"type": "Expression"
 															}
 														}
@@ -192,7 +176,7 @@
 													"source": {
 														"type": "AzureSqlSource",
 														"sqlReaderQuery": {
-															"value": "select max([@{json(item().DataLoadingBehaviorSettings).watermarkColumnName}]) as CurrentMaxWaterMarkColumnValue from [@{json(item().SourceObjectSettings).schema}].[@{json(item().SourceObjectSettings).table}]",
+															"value": "select max(@{item().watermarkColumnName}) as CurrentMaxWaterMarkColumnValue from [@{item().SourceObjectSchema}].[@{item().SourceObjectTable}]",
 															"type": "Expression"
 														},
 														"partitionOption": "None"
@@ -202,11 +186,11 @@
 														"type": "DatasetReference",
 														"parameters": {
 															"cw_schema": {
-																"value": "@json(item().SourceObjectSettings).schema",
+																"value": "@item().SourceObjectSchema",
 																"type": "Expression"
 															},
 															"cw_table": {
-																"value": "@json(item().SourceObjectSettings).table",
+																"value": "@item().SourceObjectTable",
 																"type": "Expression"
 															}
 														}
@@ -235,37 +219,21 @@
 												"userProperties": [
 													{
 														"name": "Source",
-														"value": "@{json(item().SourceObjectSettings).schema}.@{json(item().SourceObjectSettings).table}"
+														"value": "@{item().SourceObjectSchema}.@{item().SourceObjectTable}"
 													},
 													{
 														"name": "Destination",
-														"value": "@{json(item().SinkObjectSettings).fileSystem}/@{json(item().SinkObjectSettings).folderPath}/@{json(item().SinkObjectSettings).fileName}"
+														"value": "@{item().SinkObjectFileSystem}/@{item().SinkObjectFolderPath}/@{item().SinkObjectFileName}"
 													}
 												],
 												"typeProperties": {
 													"source": {
 														"type": "AzureSqlSource",
 														"sqlReaderQuery": {
-															"value": "select * from [@{json(item().SourceObjectSettings).schema}].[@{json(item().SourceObjectSettings).table}] \n    where [@{json(item().DataLoadingBehaviorSettings).watermarkColumnName}] > @{if(contains(json(item().DataLoadingBehaviorSettings).watermarkColumnType, 'Int'),\n    json(item().DataLoadingBehaviorSettings).watermarkColumnStartValue, \n    concat('''', json(item().DataLoadingBehaviorSettings).watermarkColumnStartValue, ''''))}\n    and [@{json(item().DataLoadingBehaviorSettings).watermarkColumnName}] <= @{if(contains(json(item().DataLoadingBehaviorSettings).watermarkColumnType, 'Int'),\n    activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue, \n    concat('''', activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue, ''''))}",
-															"type": "Expression"
-														},
-														"partitionOption": {
-															"value": "@json(item().CopySourceSettings).partitionOption",
+															"value": "select * from [@{item().SourceObjectSchema}].[@{item().SourceObjectTable}] \n    where [@{item().watermarkColumnName}] > @{if(contains(item().watermarkColumnType, 'Int'),\n    item().watermarkColumnStartValue, \n    concat('''', item().watermarkColumnStartValue, ''''))}\n    and [@{item().watermarkColumnName}] <= @{if(contains(item().watermarkColumnType, 'Int'),\n    activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue, \n    concat('''', activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue, ''''))}",
 															"type": "Expression"
 														},
 														"partitionSettings": {
-															"partitionColumnName": {
-																"value": "@json(item().CopySourceSettings).partitionColumnName",
-																"type": "Expression"
-															},
-															"partitionUpperBound": {
-																"value": "@json(item().CopySourceSettings).partitionUpperBound",
-																"type": "Expression"
-															},
-															"partitionLowerBound": {
-																"value": "@json(item().CopySourceSettings).partitionLowerBound",
-																"type": "Expression"
-															},
 															"partitionNames": "@json(item().CopySourceSettings).partitionNames"
 														}
 													},
@@ -293,11 +261,11 @@
 														"type": "DatasetReference",
 														"parameters": {
 															"cw_schema": {
-																"value": "@json(item().SourceObjectSettings).schema",
+																"value": "@item().SourceObjectSchema",
 																"type": "Expression"
 															},
 															"cw_table": {
-																"value": "@json(item().SourceObjectSettings).table",
+																"value": "@item().SourceObjectTable",
 																"type": "Expression"
 															}
 														}
@@ -309,15 +277,15 @@
 														"type": "DatasetReference",
 														"parameters": {
 															"cw_fileName": {
-																"value": "@{json(item().SinkObjectSettings).fileName}-@{json(item().DataLoadingBehaviorSettings).watermarkColumnStartValue}-@{activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue}",
+																"value": "@item().SinkObjectFileName",
 																"type": "Expression"
 															},
 															"cw_folderPath": {
-																"value": "@json(item().SinkObjectSettings).folderPath",
+																"value": "@item().SinkObjectFolderPath",
 																"type": "Expression"
 															},
 															"cw_fileSystem": {
-																"value": "@json(item().SinkObjectSettings).fileSystem",
+																"value": "@item().SinkObjectFileSystem",
 																"type": "Expression"
 															}
 														}
@@ -344,7 +312,7 @@
 												},
 												"userProperties": [],
 												"typeProperties": {
-													"storedProcedureName": "[dbo].[UpdateWatermarkColumnValue_yvs]",
+													"storedProcedureName": "[dbo].[UpdateWatermarkColumnValue]",
 													"storedProcedureParameters": {
 														"Id": {
 															"value": {
@@ -386,37 +354,21 @@
 										"userProperties": [
 											{
 												"name": "Source",
-												"value": "@{json(item().SourceObjectSettings).schema}.@{json(item().SourceObjectSettings).table}"
+												"value": "@{item().SourceObjectSchema}.@{item().SourceObjectTable}"
 											},
 											{
 												"name": "Destination",
-												"value": "@{json(item().SinkObjectSettings).fileSystem}/@{json(item().SinkObjectSettings).folderPath}/@{json(item().SinkObjectSettings).fileName}"
+												"value": "@{item().SinkObjectFileSystem}/@{item().SinkObjectFolderPath}/@{item().SinkObjectFileName}"
 											}
 										],
 										"typeProperties": {
 											"source": {
 												"type": "AzureSqlSource",
 												"sqlReaderQuery": {
-													"value": "@json(item().CopySourceSettings).sqlReaderQuery",
-													"type": "Expression"
-												},
-												"partitionOption": {
-													"value": "@json(item().CopySourceSettings).partitionOption",
+													"value": "@item().sqlReaderQuery",
 													"type": "Expression"
 												},
 												"partitionSettings": {
-													"partitionColumnName": {
-														"value": "@json(item().CopySourceSettings).partitionColumnName",
-														"type": "Expression"
-													},
-													"partitionUpperBound": {
-														"value": "@json(item().CopySourceSettings).partitionUpperBound",
-														"type": "Expression"
-													},
-													"partitionLowerBound": {
-														"value": "@json(item().CopySourceSettings).partitionLowerBound",
-														"type": "Expression"
-													},
 													"partitionNames": "@json(item().CopySourceSettings).partitionNames"
 												}
 											},
@@ -444,11 +396,11 @@
 												"type": "DatasetReference",
 												"parameters": {
 													"cw_schema": {
-														"value": "@json(item().SourceObjectSettings).schema",
+														"value": "@item().SourceObjectSchema",
 														"type": "Expression"
 													},
 													"cw_table": {
-														"value": "@json(item().SourceObjectSettings).table",
+														"value": "@item().SourceObjectTable",
 														"type": "Expression"
 													}
 												}
@@ -460,15 +412,15 @@
 												"type": "DatasetReference",
 												"parameters": {
 													"cw_fileName": {
-														"value": "@json(item().SinkObjectSettings).fileName",
+														"value": "@item().SinkObjectFileName",
 														"type": "Expression"
 													},
 													"cw_folderPath": {
-														"value": "@json(item().SinkObjectSettings).folderPath",
+														"value": "@item().SinkObjectFolderPath",
 														"type": "Expression"
 													},
 													"cw_fileSystem": {
-														"value": "@json(item().SinkObjectSettings).fileSystem",
+														"value": "@item().SinkObjectFileSystem",
 														"type": "Expression"
 													}
 												}

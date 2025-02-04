@@ -1,0 +1,16 @@
+{
+	"name": "AzureDatabricksDeltaLake_ds_audit",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDatabricksDeltaLake1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureDatabricksDeltaLakeDataset",
+		"typeProperties": {
+			"database": "audit",
+			"table": "load_logs"
+		},
+		"schema": []
+	}
+}
