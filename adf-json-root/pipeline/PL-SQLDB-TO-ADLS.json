@@ -18,7 +18,7 @@
 					"source": {
 						"type": "AzureSqlSource",
 						"sqlReaderQuery": {
-							"value": "WITH OrderedControlTable AS (\n                             SELECT *, ROW_NUMBER() OVER (ORDER BY [TaskId], [Id] DESC) AS RowNumber\n                             FROM @{pipeline().parameters.MainControlTableName}\n                             where TopLevelPipelineName = '@{pipeline().parameters.TopLevelPipelineName}'\n                             and TriggerName like '%@{pipeline().parameters.TriggerName}%' and CopyEnabled = 1)\n                             SELECT * FROM OrderedControlTable WHERE RowNumber <= @{pipeline().parameters.MaxNumberOfObjectsReturnedFromLookupActivity}",
+							"value": "SELECT * FROM @{pipeline().parameters.MainControlTableName}\n                             where TopLevelPipelineName = '@{pipeline().parameters.TopLevelPipelineName}'\n                             and CopyEnabled = 1\n\n",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
@@ -46,7 +46,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@activity('GetObjects').output.value",
+						"value": "@activity('GetObjects').output.value\n",
 						"type": "Expression"
 					},
 					"isSequential": true,
@@ -123,11 +123,11 @@
 														"type": "DatasetReference",
 														"parameters": {
 															"cw_schema": {
-																"value": "@item().SourceObjectSchema",
+																"value": "@item().SourceObjectSchema\n",
 																"type": "Expression"
 															},
 															"cw_table": {
-																"value": "@item().SourceObjectTable",
+																"value": "@item().SourceObjectTable\n",
 																"type": "Expression"
 															}
 														}
@@ -139,15 +139,15 @@
 														"type": "DatasetReference",
 														"parameters": {
 															"cw_fileName": {
-																"value": "@item().SinkObjectFileName",
+																"value": "@item().SinkObjectFileName\n",
 																"type": "Expression"
 															},
 															"cw_folderPath": {
-																"value": "@item().SinkObjectFolderPath",
+																"value": "@item().SinkObjectFolderPath\n",
 																"type": "Expression"
 															},
 															"cw_fileSystem": {
-																"value": "@item().SinkObjectFileSystem",
+																"value": "@item().SinkObjectFileSystem\n",
 																"type": "Expression"
 															}
 														}
@@ -230,7 +230,7 @@
 													"source": {
 														"type": "AzureSqlSource",
 														"sqlReaderQuery": {
-															"value": "select * from [@{item().SourceObjectSchema}].[@{item().SourceObjectTable}] \n    where [@{item().watermarkColumnName}] > @{if(contains(item().watermarkColumnType, 'Int'),\n    item().watermarkColumnStartValue, \n    concat('''', item().watermarkColumnStartValue, ''''))}\n    and [@{item().watermarkColumnName}] <= @{if(contains(item().watermarkColumnType, 'Int'),\n    activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue, \n    concat('''', activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue, ''''))}",
+															"value": "@item().sqlReaderQuery",
 															"type": "Expression"
 														},
 														"partitionSettings": {
@@ -261,11 +261,11 @@
 														"type": "DatasetReference",
 														"parameters": {
 															"cw_schema": {
-																"value": "@item().SourceObjectSchema",
+																"value": "@item().SourceObjectSchema\n",
 																"type": "Expression"
 															},
 															"cw_table": {
-																"value": "@item().SourceObjectTable",
+																"value": "@item().SourceObjectTable\n",
 																"type": "Expression"
 															}
 														}
@@ -277,15 +277,15 @@
 														"type": "DatasetReference",
 														"parameters": {
 															"cw_fileName": {
-																"value": "@item().SinkObjectFileName",
+																"value": "@item().SinkObjectFileName\n",
 																"type": "Expression"
 															},
 															"cw_folderPath": {
-																"value": "@item().SinkObjectFolderPath",
+																"value": "@item().SinkObjectFolderPath\n",
 																"type": "Expression"
 															},
 															"cw_fileSystem": {
-																"value": "@item().SinkObjectFileSystem",
+																"value": "@item().SinkObjectFileSystem\n",
 																"type": "Expression"
 															}
 														}
@@ -312,7 +312,7 @@
 												},
 												"userProperties": [],
 												"typeProperties": {
-													"storedProcedureName": "[dbo].[UpdateWatermarkColumnValue]",
+													"storedProcedureName": "[dbo].[UpdateWatermarkMaxValue]",
 													"storedProcedureParameters": {
 														"Id": {
 															"value": {
@@ -321,7 +321,7 @@
 															},
 															"type": "Int32"
 														},
-														"watermarkColumnStartValue": {
+														"watermarkColumnMaxValue": {
 															"value": {
 																"value": "@activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue",
 																"type": "Expression"
@@ -396,11 +396,11 @@
 												"type": "DatasetReference",
 												"parameters": {
 													"cw_schema": {
-														"value": "@item().SourceObjectSchema",
+														"value": "@item().SourceObjectSchema\n",
 														"type": "Expression"
 													},
 													"cw_table": {
-														"value": "@item().SourceObjectTable",
+														"value": "@item().SourceObjectTable\n",
 														"type": "Expression"
 													}
 												}
@@ -412,15 +412,15 @@
 												"type": "DatasetReference",
 												"parameters": {
 													"cw_fileName": {
-														"value": "@item().SinkObjectFileName",
+														"value": "@item().SinkObjectFileName\n",
 														"type": "Expression"
 													},
 													"cw_folderPath": {
-														"value": "@item().SinkObjectFolderPath",
+														"value": "@item().SinkObjectFolderPath\n",
 														"type": "Expression"
 													},
 													"cw_fileSystem": {
-														"value": "@item().SinkObjectFileSystem",
+														"value": "@item().SinkObjectFileSystem\n",
 														"type": "Expression"
 													}
 												}
@@ -428,6 +428,43 @@
 										]
 									}
 								]
+							}
+						},
+						{
+							"name": "Copy to Warehouse",
+							"type": "DatabricksNotebook",
+							"dependsOn": [
+								{
+									"activity": "RouteJobsBasedOnLoadingBehavior",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": "/Users/snoor@relisource.com/Mount",
+								"baseParameters": {
+									"source_path": {
+										"value": "@item().SinkObjectFileName",
+										"type": "Expression"
+									},
+									"target_table": {
+										"value": "@item().SourceObjectTable",
+										"type": "Expression"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "AzureDatabricks1",
+								"type": "LinkedServiceReference"
 							}
 						}
 					]
