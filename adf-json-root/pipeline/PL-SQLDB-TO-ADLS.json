@@ -95,6 +95,7 @@
 															"value": "@item().sqlReaderQuery",
 															"type": "Expression"
 														},
+														"partitionOption": "None",
 														"partitionSettings": {
 															"partitionNames": "@json(item().CopySourceSettings).partitionNames"
 														}
@@ -233,6 +234,7 @@
 															"value": "@item().sqlReaderQuery",
 															"type": "Expression"
 														},
+														"partitionOption": "None",
 														"partitionSettings": {
 															"partitionNames": "@json(item().CopySourceSettings).partitionNames"
 														}
@@ -368,6 +370,7 @@
 													"value": "@item().sqlReaderQuery",
 													"type": "Expression"
 												},
+												"partitionOption": "None",
 												"partitionSettings": {
 													"partitionNames": "@json(item().CopySourceSettings).partitionNames"
 												}
@@ -433,6 +436,8 @@
 						{
 							"name": "Copy to Warehouse",
 							"type": "DatabricksNotebook",
+							"state": "Inactive",
+							"onInactiveMarkAs": "Succeeded",
 							"dependsOn": [
 								{
 									"activity": "RouteJobsBasedOnLoadingBehavior",
@@ -450,7 +455,7 @@
 							},
 							"userProperties": [],
 							"typeProperties": {
-								"notebookPath": "/Users/snoor@relisource.com/Mount",
+								"notebookPath": "/Users/snoor@relisource.com/Test_audit_table",
 								"baseParameters": {
 									"source_path": {
 										"value": "@item().SinkObjectFileName",
