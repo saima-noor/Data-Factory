@@ -575,10 +575,6 @@
 			"TopLevelPipelineName": {
 				"type": "string",
 				"defaultValue": "PL-SQLDB-TO-ADLS"
-			},
-			"TriggerName": {
-				"type": "string",
-				"defaultValue": "Sandbox"
 			}
 		},
 		"annotations": []
