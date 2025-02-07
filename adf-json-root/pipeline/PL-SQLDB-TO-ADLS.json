@@ -154,6 +154,95 @@
 														}
 													}
 												]
+											},
+											{
+												"name": "FullLoadOneObject_copy1",
+												"description": "Take a full snapshot on this object and copy it to the destination",
+												"type": "Copy",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [
+													{
+														"name": "Source",
+														"value": "@{item().SourceObjectSchema}.@{item().SourceObjectTable}"
+													},
+													{
+														"name": "Destination",
+														"value": "@{item().SinkObjectFileSystem}/@{item().SinkObjectFolderPath}/@{item().SinkObjectFileName}"
+													}
+												],
+												"typeProperties": {
+													"source": {
+														"type": "AzureSqlSource",
+														"sqlReaderQuery": {
+															"value": "@item().sqlReaderQuery",
+															"type": "Expression"
+														},
+														"partitionOption": "None",
+														"partitionSettings": {
+															"partitionNames": "@json(item().CopySourceSettings).partitionNames"
+														}
+													},
+													"sink": {
+														"type": "DelimitedTextSink",
+														"storeSettings": {
+															"type": "AzureBlobFSWriteSettings"
+														},
+														"formatSettings": {
+															"type": "DelimitedTextWriteSettings",
+															"quoteAllText": true,
+															"fileExtension": ".txt"
+														}
+													},
+													"enableStaging": false,
+													"validateDataConsistency": false,
+													"translator": {
+														"value": "@json(item().CopyActivitySettings).translator",
+														"type": "Expression"
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "MetadataDrivenCopyTask_yvs_SourceDS",
+														"type": "DatasetReference",
+														"parameters": {
+															"cw_schema": {
+																"value": "@item().SourceObjectSchema\n",
+																"type": "Expression"
+															},
+															"cw_table": {
+																"value": "@item().SourceObjectTable\n",
+																"type": "Expression"
+															}
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "MetadataDrivenCopyTask_yvs_DestinationDS",
+														"type": "DatasetReference",
+														"parameters": {
+															"cw_fileName": {
+																"value": "@item().SinkObjectFileName\n",
+																"type": "Expression"
+															},
+															"cw_folderPath": {
+																"value": "@item().SinkObjectFolderPath\n",
+																"type": "Expression"
+															},
+															"cw_fileSystem": {
+																"value": "@item().SinkObjectFileSystem\n",
+																"type": "Expression"
+															}
+														}
+													}
+												]
 											}
 										]
 									},
@@ -434,10 +523,8 @@
 							}
 						},
 						{
-							"name": "Copy to Warehouse",
-							"type": "DatabricksNotebook",
-							"state": "Inactive",
-							"onInactiveMarkAs": "Succeeded",
+							"name": "Execute Pipeline1",
+							"type": "ExecutePipeline",
 							"dependsOn": [
 								{
 									"activity": "RouteJobsBasedOnLoadingBehavior",
@@ -447,16 +534,16 @@
 								}
 							],
 							"policy": {
-								"timeout": "0.12:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
 								"secureInput": false
 							},
 							"userProperties": [],
 							"typeProperties": {
-								"notebookPath": "/Users/snoor@relisource.com/Test_audit_table",
-								"baseParameters": {
+								"pipeline": {
+									"referenceName": "PL-ADLS-to-Delta",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
 									"source_path": {
 										"value": "@item().SinkObjectFileName",
 										"type": "Expression"
@@ -464,12 +551,12 @@
 									"target_table": {
 										"value": "@item().SourceObjectTable",
 										"type": "Expression"
+									},
+									"load_type": {
+										"value": "@item().dataLoadingBehavior",
+										"type": "Expression"
 									}
 								}
-							},
-							"linkedServiceName": {
-								"referenceName": "AzureDatabricks1",
-								"type": "LinkedServiceReference"
 							}
 						}
 					]
