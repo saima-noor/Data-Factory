@@ -16,7 +16,21 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"notebookPath": "/Users/snoor@relisource.com/Delta Load"
+					"notebookPath": "/Users/snoor@relisource.com/Delta Load",
+					"baseParameters": {
+						"source_path": {
+							"value": "@pipeline().parameters.source_path",
+							"type": "Expression"
+						},
+						"target_table": {
+							"value": "@pipeline().parameters.target_table",
+							"type": "Expression"
+						},
+						"load_type": {
+							"value": "@pipeline().parameters.load_type",
+							"type": "Expression"
+						}
+					}
 				},
 				"linkedServiceName": {
 					"referenceName": "AzureDatabricks1",
