@@ -36,6 +36,39 @@
 					"referenceName": "AzureDatabricks1",
 					"type": "LinkedServiceReference"
 				}
+			},
+			{
+				"name": "Execute Pipeline2",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Copy to Destination",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "PL-Delta-to-final",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"source": {
+							"value": "@pipeline().parameters.target_table",
+							"type": "Expression"
+						},
+						"target": {
+							"value": "@pipeline().parameters.source_path",
+							"type": "Expression"
+						}
+					}
+				}
 			}
 		],
 		"parameters": {
@@ -46,6 +79,12 @@
 				"type": "string"
 			},
 			"load_type": {
+				"type": "string"
+			},
+			"watermarkstart": {
+				"type": "string"
+			},
+			"watermarkmax": {
 				"type": "string"
 			}
 		},

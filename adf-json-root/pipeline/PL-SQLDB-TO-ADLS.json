@@ -555,6 +555,14 @@
 									"load_type": {
 										"value": "@item().dataLoadingBehavior",
 										"type": "Expression"
+									},
+									"watermarkstart": {
+										"value": "@item().watermarkColumnStartValue",
+										"type": "Expression"
+									},
+									"watermarkmax": {
+										"value": "@item().watermarkColumnMaxValue",
+										"type": "Expression"
 									}
 								}
 							}

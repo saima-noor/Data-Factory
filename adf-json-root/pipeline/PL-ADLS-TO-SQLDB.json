@@ -3,7 +3,101 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Lookup1",
+				"name": "Delta Load",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [
+					{
+						"name": "Source",
+						"value": "@{'final'}/@{pipeline().parameters.source}/@{pipeline().parameters.source}"
+					},
+					{
+						"name": "Destination",
+						"value": "@{'trans'}.@{pipeline().parameters.target}"
+					}
+				],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"modifiedDatetimeStart": {
+								"value": "@pipeline().parameters.watermarkstart",
+								"type": "Expression"
+							},
+							"modifiedDatetimeEnd": "2025-02-07T00:00:00.000Z",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "upsert",
+						"upsertSettings": {
+							"useTempDB": true,
+							"keys": [
+								"id"
+							]
+						},
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "MetadataDrivenCopyTask_yvs_DestinationDS",
+						"type": "DatasetReference",
+						"parameters": {
+							"cw_fileName": {
+								"value": "@pipeline().parameters.source",
+								"type": "Expression"
+							},
+							"cw_folderPath": {
+								"value": "@pipeline().parameters.path",
+								"type": "Expression"
+							},
+							"cw_fileSystem": "final"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "MetadataDrivenCopyTask_yvs_SourceDS",
+						"type": "DatasetReference",
+						"parameters": {
+							"cw_schema": "trans",
+							"cw_table": {
+								"value": "@pipeline().parameters.target",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "get object",
 				"type": "Lookup",
 				"dependsOn": [],
 				"policy": {
@@ -13,9 +107,51 @@
 					"secureOutput": false,
 					"secureInput": false
 				},
-				"userProperties": []
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "select * from dbo.MainControlTable_config where SourceObjectTable = '@{pipeline().parameters.target}'",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "MetadataDrivenCopyTask_yvs_ControlDS",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
 			}
 		],
+		"parameters": {
+			"source": {
+				"type": "string",
+				"defaultValue": "dbo.Sales.csv"
+			},
+			"target": {
+				"type": "string",
+				"defaultValue": "Sales"
+			},
+			"load_type": {
+				"type": "string",
+				"defaultValue": "DeltaLoad"
+			},
+			"watermarkstart": {
+				"type": "string",
+				"defaultValue": "2024-06-01T00:00:00.000Z"
+			},
+			"watermarkmax": {
+				"type": "string",
+				"defaultValue": "2024-07-06T09:00:00"
+			},
+			"path": {
+				"type": "string",
+				"defaultValue": "NULL"
+			}
+		},
 		"annotations": []
 	}
 }
