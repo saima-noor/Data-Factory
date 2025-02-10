@@ -1,6 +1,7 @@
 {
 	"name": "PL-SQLDB-TO-ADLS",
 	"properties": {
+		"description": "This pipeline will get the list of the objects/table and load data in the ADLS container according to its load type. The objects are queried from the metadata config table and retrieve the objects where copyEnabled is true and the top level pipeline is PL-SQLDB-TO-ADLS.",
 		"activities": [
 			{
 				"name": "GetObjects",
@@ -320,7 +321,7 @@
 													"source": {
 														"type": "AzureSqlSource",
 														"sqlReaderQuery": {
-															"value": "@item().sqlReaderQuery",
+															"value": "select * from [@{json(item().SourceObjectSettings).schema}].[@{json(item().SourceObjectSettings).table}] \n    where [@{json(item().DataLoadingBehaviorSettings).watermarkColumnName}] > @{if(contains(json(item().DataLoadingBehaviorSettings).watermarkColumnType, 'Int'),\n    json(item().DataLoadingBehaviorSettings).watermarkColumnStartValue, \n    concat('''', json(item().DataLoadingBehaviorSettings).watermarkColumnStartValue, ''''))}\n    and [@{json(item().DataLoadingBehaviorSettings).watermarkColumnName}] <= @{if(contains(json(item().DataLoadingBehaviorSettings).watermarkColumnType, 'Int'),\n    activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue, \n    concat('''', activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue, ''''))}",
 															"type": "Expression"
 														},
 														"partitionOption": "None",
@@ -331,7 +332,8 @@
 													"sink": {
 														"type": "DelimitedTextSink",
 														"storeSettings": {
-															"type": "AzureBlobFSWriteSettings"
+															"type": "AzureBlobFSWriteSettings",
+															"copyBehavior": "MergeFiles"
 														},
 														"formatSettings": {
 															"type": "DelimitedTextWriteSettings",
@@ -525,6 +527,8 @@
 						{
 							"name": "Execute Pipeline1",
 							"type": "ExecutePipeline",
+							"state": "Inactive",
+							"onInactiveMarkAs": "Succeeded",
 							"dependsOn": [
 								{
 									"activity": "RouteJobsBasedOnLoadingBehavior",

@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Delta to CSV",
+				"name": "Delta to CSV and SQLDB",
 				"type": "DatabricksNotebook",
 				"dependsOn": [],
 				"policy": {
@@ -37,7 +37,7 @@
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
-						"activity": "Delta to CSV",
+						"activity": "Delta to CSV and SQLDB",
 						"dependencyConditions": [
 							"Succeeded"
 						]
