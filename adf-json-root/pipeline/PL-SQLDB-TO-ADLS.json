@@ -1201,6 +1201,49 @@
 								"referenceName": "AzureSqlDBMetadata",
 								"type": "LinkedServiceReference"
 							}
+						},
+						{
+							"name": "UpdateWatermarkstartValue",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "RouteJobsBasedOnLoadingBehavior",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[UpdateWatermarkStartValue]",
+								"storedProcedureParameters": {
+									"Id": {
+										"value": {
+											"value": "@item().Id",
+											"type": "Expression"
+										},
+										"type": "Int32"
+									},
+									"watermarkColumnMaxValue": {
+										"value": {
+											"value": "@item().watermarkColumnMaxValue",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "AzureSqlDBMetadata",
+								"type": "LinkedServiceReference"
+							}
 						}
 					]
 				}
@@ -1223,9 +1266,6 @@
 		"variables": {
 			"Numberofrows": {
 				"type": "Integer"
-			},
-			"error": {
-				"type": "String"
 			},
 			"errors": {
 				"type": "Array"
