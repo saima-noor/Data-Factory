@@ -157,93 +157,52 @@
 												]
 											},
 											{
-												"name": "FullLoadOneObject_copy1",
-												"description": "Take a full snapshot on this object and copy it to the destination",
-												"type": "Copy",
-												"dependsOn": [],
+												"name": "Set number of rows copied 2",
+												"type": "SetVariable",
+												"dependsOn": [
+													{
+														"activity": "FullLoadOneObject",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
 												"policy": {
-													"timeout": "0.12:00:00",
-													"retry": 0,
-													"retryIntervalInSeconds": 30,
 													"secureOutput": false,
 													"secureInput": false
 												},
-												"userProperties": [
-													{
-														"name": "Source",
-														"value": "@{item().SourceObjectSchema}.@{item().SourceObjectTable}"
-													},
-													{
-														"name": "Destination",
-														"value": "@{item().SinkObjectFileSystem}/@{item().SinkObjectFolderPath}/@{item().SinkObjectFileName}"
-													}
-												],
+												"userProperties": [],
 												"typeProperties": {
-													"source": {
-														"type": "AzureSqlSource",
-														"sqlReaderQuery": {
-															"value": "@item().sqlReaderQuery",
-															"type": "Expression"
-														},
-														"partitionOption": "None",
-														"partitionSettings": {
-															"partitionNames": "@json(item().CopySourceSettings).partitionNames"
-														}
-													},
-													"sink": {
-														"type": "DelimitedTextSink",
-														"storeSettings": {
-															"type": "AzureBlobFSWriteSettings"
-														},
-														"formatSettings": {
-															"type": "DelimitedTextWriteSettings",
-															"quoteAllText": true,
-															"fileExtension": ".txt"
-														}
-													},
-													"enableStaging": false,
-													"validateDataConsistency": false,
-													"translator": {
-														"value": "@json(item().CopyActivitySettings).translator",
+													"variableName": "Numberofrows",
+													"value": {
+														"value": "@activity('FullLoadOneObject').output.rowscopied",
 														"type": "Expression"
 													}
-												},
-												"inputs": [
+												}
+											},
+											{
+												"name": "Set copy error 2",
+												"type": "SetVariable",
+												"dependsOn": [
 													{
-														"referenceName": "MetadataDrivenCopyTask_yvs_SourceDS",
-														"type": "DatasetReference",
-														"parameters": {
-															"cw_schema": {
-																"value": "@item().SourceObjectSchema\n",
-																"type": "Expression"
-															},
-															"cw_table": {
-																"value": "@item().SourceObjectTable\n",
-																"type": "Expression"
-															}
-														}
+														"activity": "Set number of rows copied 2",
+														"dependencyConditions": [
+															"Succeeded"
+														]
 													}
 												],
-												"outputs": [
-													{
-														"referenceName": "MetadataDrivenCopyTask_yvs_DestinationDS",
-														"type": "DatasetReference",
-														"parameters": {
-															"cw_fileName": {
-																"value": "@item().SinkObjectFileName\n",
-																"type": "Expression"
-															},
-															"cw_folderPath": {
-																"value": "@item().SinkObjectFolderPath\n",
-																"type": "Expression"
-															},
-															"cw_fileSystem": {
-																"value": "@item().SinkObjectFileSystem\n",
-																"type": "Expression"
-															}
-														}
+												"policy": {
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"variableName": "errors",
+													"value": {
+														"value": "@activity('FullLoadOneObject').output.errors",
+														"type": "Expression"
 													}
-												]
+												}
 											}
 										]
 									},
@@ -321,7 +280,7 @@
 													"source": {
 														"type": "AzureSqlSource",
 														"sqlReaderQuery": {
-															"value": "select * from [@{json(item().SourceObjectSettings).schema}].[@{json(item().SourceObjectSettings).table}] \n    where [@{json(item().DataLoadingBehaviorSettings).watermarkColumnName}] > @{if(contains(json(item().DataLoadingBehaviorSettings).watermarkColumnType, 'Int'),\n    json(item().DataLoadingBehaviorSettings).watermarkColumnStartValue, \n    concat('''', json(item().DataLoadingBehaviorSettings).watermarkColumnStartValue, ''''))}\n    and [@{json(item().DataLoadingBehaviorSettings).watermarkColumnName}] <= @{if(contains(json(item().DataLoadingBehaviorSettings).watermarkColumnType, 'Int'),\n    activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue, \n    concat('''', activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue, ''''))}",
+															"value": "select * from [@{item().SourceObjectSchema}].[@{item().SourceObjectTable}] \n    where [@{item().watermarkColumnName}] > @{if(contains(item().watermarkColumnType, 'Int'),\n    item().watermarkColumnStartValue, \n    concat('''', item().watermarkColumnStartValue, ''''))}\n    and [@{item().watermarkColumnName}] <= @{if(contains(item().watermarkColumnType, 'Int'),\n    activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue, \n    concat('''', activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue, ''''))}",
 															"type": "Expression"
 														},
 														"partitionOption": "None",
@@ -332,8 +291,7 @@
 													"sink": {
 														"type": "DelimitedTextSink",
 														"storeSettings": {
-															"type": "AzureBlobFSWriteSettings",
-															"copyBehavior": "MergeFiles"
+															"type": "AzureBlobFSWriteSettings"
 														},
 														"formatSettings": {
 															"type": "DelimitedTextWriteSettings",
@@ -426,6 +384,54 @@
 												"linkedServiceName": {
 													"referenceName": "AzureSqlDBMetadata",
 													"type": "LinkedServiceReference"
+												}
+											},
+											{
+												"name": "Set number of rows copied 3",
+												"type": "SetVariable",
+												"dependsOn": [
+													{
+														"activity": "UpdateWatermarkColumnValue",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"variableName": "Numberofrows",
+													"value": {
+														"value": "@activity('DeltaLoadOneObject').output.rowscopied",
+														"type": "Expression"
+													}
+												}
+											},
+											{
+												"name": "Set copy error 3",
+												"type": "SetVariable",
+												"dependsOn": [
+													{
+														"activity": "Set number of rows copied 3",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"variableName": "errors",
+													"value": {
+														"value": "@activity('DeltaLoadOneObject').output.errors",
+														"type": "Expression"
+													}
 												}
 											}
 										]
@@ -520,6 +526,54 @@
 												}
 											}
 										]
+									},
+									{
+										"name": "Set number of rows_1",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "DefaultFullLoadOneObject",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "Numberofrows",
+											"value": {
+												"value": "@activity('DefaultFullLoadOneObject').output.rowscopied",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Set copy error 1",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "Set number of rows_1",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "errors",
+											"value": {
+												"value": "@activity('DefaultFullLoadOneObject').output.errors",
+												"type": "Expression"
+											}
+										}
 									}
 								]
 							}
@@ -527,8 +581,6 @@
 						{
 							"name": "Execute Pipeline1",
 							"type": "ExecutePipeline",
-							"state": "Inactive",
-							"onInactiveMarkAs": "Succeeded",
 							"dependsOn": [
 								{
 									"activity": "RouteJobsBasedOnLoadingBehavior",
@@ -570,6 +622,585 @@
 									}
 								}
 							}
+						},
+						{
+							"name": "Execute Pipeline2",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Execute Pipeline1",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "PL-Delta-to-final",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"source": {
+										"value": "@item().SourceObjectTable",
+										"type": "Expression"
+									},
+									"target": {
+										"value": "@item().SinkObjectFileName",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "InsertLoadLogs",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "RouteJobsBasedOnLoadingBehavior",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[sp_InsertLoadLog]",
+								"storedProcedureParameters": {
+									"dataSource": {
+										"value": "SQL DB",
+										"type": "String"
+									},
+									"fileName": {
+										"value": {
+											"value": "@item().SinkObjectFileName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"loadType": {
+										"value": {
+											"value": "@item().dataLoadingBehavior",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"numberOfRowsCopied": {
+										"value": {
+											"value": "@variables('Numberofrows')",
+											"type": "Expression"
+										},
+										"type": "Int32"
+									},
+									"pipelineName": {
+										"value": {
+											"value": "@pipeline().Pipeline",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"schemaName": {
+										"value": {
+											"value": "@item().SourceObjectSchema",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"tableName": {
+										"value": {
+											"value": "@item().SourceObjectTable",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"target": {
+										"value": "ADLS",
+										"type": "String"
+									},
+									"watermarkColumnName": {
+										"value": {
+											"value": "@item().watermarkColumnName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"watermarkColumnStartValue": {
+										"value": {
+											"value": "@item().watermarkColumnStartValue",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"container": {
+										"value": {
+											"value": "@item().SinkObjectFileSystem",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "AzureSqlDBMetadata",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "InsertErrorLogs",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "RouteJobsBasedOnLoadingBehavior",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[sp_InsertErrorLog]",
+								"storedProcedureParameters": {
+									"container": {
+										"value": {
+											"value": "@item().SinkObjectFileSystem",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"dataSource": {
+										"value": "SQL DB",
+										"type": "String"
+									},
+									"error": {
+										"value": {
+											"value": "@string(variables('error'))",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"fileName": {
+										"value": {
+											"value": "@item().SinkObjectFileName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"loadType": {
+										"value": {
+											"value": "@item().dataLoadingBehavior",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipelineName": {
+										"value": {
+											"value": "@pipeline().Pipeline",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"schemaName": {
+										"value": {
+											"value": "@item().SourceObjectSchema",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"tableName": {
+										"value": {
+											"value": "@item().SourceObjectTable",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"target": {
+										"value": "ADLS",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "AzureSqlDBMetadata",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "InsertLoadLogs_toDelta",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Execute Pipeline1",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[sp_InsertLoadLog]",
+								"storedProcedureParameters": {
+									"dataSource": {
+										"value": "ADLS",
+										"type": "String"
+									},
+									"fileName": {
+										"value": {
+											"value": "@item().SinkObjectFileName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"loadType": {
+										"value": {
+											"value": "@item().dataLoadingBehavior",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"numberOfRowsCopied": {
+										"value": {
+											"value": "@variables('Numberofrows')",
+											"type": "Expression"
+										},
+										"type": "Int32"
+									},
+									"pipelineName": {
+										"value": {
+											"value": "@pipeline().Pipeline",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"schemaName": {
+										"value": {
+											"value": "@item().SourceObjectSchema",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"tableName": {
+										"value": {
+											"value": "@item().SourceObjectTable",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"target": {
+										"value": "Delta Lake",
+										"type": "String"
+									},
+									"watermarkColumnName": {
+										"value": {
+											"value": "@item().watermarkColumnName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"watermarkColumnStartValue": {
+										"value": {
+											"value": "@item().watermarkColumnStartValue",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"container": {
+										"value": {
+											"value": "@item().SinkObjectFileSystem",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "AzureSqlDBMetadata",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "InsertErrorLogs_todelta",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Execute Pipeline1",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[sp_InsertErrorLog]",
+								"storedProcedureParameters": {
+									"container": {
+										"value": {
+											"value": "@item().SinkObjectFileSystem",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"dataSource": {
+										"value": "ADLS",
+										"type": "String"
+									},
+									"error": {
+										"value": "Pipeline failed",
+										"type": "String"
+									},
+									"fileName": {
+										"value": {
+											"value": "@item().SinkObjectFileName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"loadType": {
+										"value": {
+											"value": "@item().dataLoadingBehavior",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipelineName": {
+										"value": {
+											"value": "@pipeline().Pipeline",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"schemaName": {
+										"value": {
+											"value": "@item().SourceObjectSchema",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"tableName": {
+										"value": {
+											"value": "@item().SourceObjectTable",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"target": {
+										"value": "Delta Lake",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "AzureSqlDBMetadata",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "InsertLoadLogs_tofinal",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Execute Pipeline2",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[sp_InsertLoadLog]",
+								"storedProcedureParameters": {
+									"dataSource": {
+										"value": "Delta Lake",
+										"type": "String"
+									},
+									"fileName": {
+										"value": {
+											"value": "@item().SinkObjectFileName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"loadType": {
+										"value": {
+											"value": "@item().dataLoadingBehavior",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"numberOfRowsCopied": {
+										"value": {
+											"value": "@variables('Numberofrows')",
+											"type": "Expression"
+										},
+										"type": "Int32"
+									},
+									"pipelineName": {
+										"value": {
+											"value": "@pipeline().Pipeline",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"schemaName": {
+										"value": {
+											"value": "@item().SourceObjectSchema",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"tableName": {
+										"value": {
+											"value": "@item().SourceObjectTable",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"target": {
+										"value": "ADLS and SQL DB",
+										"type": "String"
+									},
+									"watermarkColumnName": {
+										"value": {
+											"value": "@item().watermarkColumnName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"watermarkColumnStartValue": {
+										"value": {
+											"value": "@item().watermarkColumnStartValue",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"container": {
+										"value": "Final",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "AzureSqlDBMetadata",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "InsertErrorLogs_tofinal",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Execute Pipeline2",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[sp_InsertErrorLog]",
+								"storedProcedureParameters": {
+									"container": {
+										"value": "final",
+										"type": "String"
+									},
+									"dataSource": {
+										"value": "Delta Lake",
+										"type": "String"
+									},
+									"error": {
+										"value": "Pipeline failed",
+										"type": "String"
+									},
+									"fileName": {
+										"value": {
+											"value": "@item().SinkObjectFileName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"loadType": {
+										"value": {
+											"value": "@item().dataLoadingBehavior",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipelineName": {
+										"value": {
+											"value": "@pipeline().Pipeline",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"schemaName": {
+										"value": {
+											"value": "@item().SourceObjectSchema",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"tableName": {
+										"value": {
+											"value": "@item().SourceObjectTable",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"target": {
+										"value": "ADLS and SQL DB",
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "AzureSqlDBMetadata",
+								"type": "LinkedServiceReference"
+							}
 						}
 					]
 				}
@@ -587,6 +1218,17 @@
 			"TopLevelPipelineName": {
 				"type": "string",
 				"defaultValue": "PL-SQLDB-TO-ADLS"
+			}
+		},
+		"variables": {
+			"Numberofrows": {
+				"type": "Integer"
+			},
+			"error": {
+				"type": "String"
+			},
+			"errors": {
+				"type": "Array"
 			}
 		},
 		"annotations": []

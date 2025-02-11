@@ -31,29 +31,6 @@
 					"referenceName": "AzureDatabricks1",
 					"type": "LinkedServiceReference"
 				}
-			},
-			{
-				"name": "Execute Pipeline2",
-				"type": "ExecutePipeline",
-				"dependsOn": [
-					{
-						"activity": "Delta to CSV and SQLDB",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"pipeline": {
-						"referenceName": "PL-ADLS-TO-SQLDB",
-						"type": "PipelineReference"
-					},
-					"waitOnCompletion": true
-				}
 			}
 		],
 		"parameters": {
@@ -62,6 +39,17 @@
 			},
 			"target": {
 				"type": "string"
+			}
+		},
+		"variables": {
+			"Numberofrows": {
+				"type": "Integer"
+			},
+			"error": {
+				"type": "String"
+			},
+			"errors": {
+				"type": "Array"
 			}
 		},
 		"annotations": []
