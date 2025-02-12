@@ -791,7 +791,7 @@
 									},
 									"error": {
 										"value": {
-											"value": "@string(variables('error'))",
+											"value": "@string(variables('errors'))",
 											"type": "Expression"
 										},
 										"type": "String"
@@ -1130,6 +1130,12 @@
 									"activity": "Execute Pipeline2",
 									"dependencyConditions": [
 										"Failed"
+									]
+								},
+								{
+									"activity": "InsertErrorLogs_todelta",
+									"dependencyConditions": [
+										"Succeeded"
 									]
 								}
 							],
