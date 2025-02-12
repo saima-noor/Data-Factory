@@ -1028,6 +1028,8 @@
 						{
 							"name": "InsertLoadLogs_tofinal",
 							"type": "SqlServerStoredProcedure",
+							"state": "Inactive",
+							"onInactiveMarkAs": "Succeeded",
 							"dependsOn": [
 								{
 									"activity": "Execute Pipeline2",
@@ -1125,6 +1127,8 @@
 						{
 							"name": "InsertErrorLogs_tofinal",
 							"type": "SqlServerStoredProcedure",
+							"state": "Inactive",
+							"onInactiveMarkAs": "Succeeded",
 							"dependsOn": [
 								{
 									"activity": "Execute Pipeline2",
